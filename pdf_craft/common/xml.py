@@ -2,6 +2,18 @@ from pathlib import Path
 from xml.etree.ElementTree import tostring, fromstring, Element
 
 
+def _clean_invalid_xml_chars(text: str) -> str:
+    # XML 1.0 valid character ranges.
+    def ok(code: int) -> bool:
+        return (
+            code == 0x9 or code == 0xA or code == 0xD or
+            0x20 <= code <= 0xD7FF or
+            0xE000 <= code <= 0xFFFD or
+            0x10000 <= code <= 0x10FFFF
+        )
+    return "".join(ch for ch in text if ok(ord(ch)))
+
+
 def indent(elem: Element, level: int = 0) -> Element:
     indent_str = "  " * level
     next_indent_str = "  " * (level + 1)
@@ -21,6 +33,13 @@ def read_xml(file_path: Path) -> Element:
     try:
         return fromstring(file_path.read_text(encoding="utf-8"))
     except Exception as error:
+        raw_text = file_path.read_text(encoding="utf-8")
+        cleaned = _clean_invalid_xml_chars(raw_text)
+        if cleaned != raw_text:
+            try:
+                return fromstring(cleaned)
+            except Exception:
+                pass
         raise ValueError(f"Failed to parse XML file: {file_path}") from error
 
 def save_xml(element: Element, file_path: Path) -> None:
