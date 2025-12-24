@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDF Craft Web Queue</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">PDF Craft Web</p>
+        <h1>OCR 处理队列</h1>
+        <p class="subtitle">每个任务对应一个 PDF，最多并行 2 个任务。</p>
+      </div>
+      <div class="status-pill">
+        <span class="dot"></span>
+        <span>端口 5201 · 局域网使用</span>
+      </div>
+    </header>
+
+    <section class="panel">
+      <form class="upload-form" method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+        <div class="field">
+          <label for="pdf">选择 PDF</label>
+          <input id="pdf" name="pdf" type="file" accept="application/pdf" required>
+        </div>
+
+        <div class="field-group">
+          <div class="field">
+            <label for="university_name">University Name</label>
+            <input id="university_name" name="university_name" type="text" placeholder="可留空">
+          </div>
+          <div class="field">
+            <label for="ocr_size">OCR Size</label>
+            <select id="ocr_size" name="ocr_size">
+              {% for size in ocr_sizes %}
+              <option value="{{ size }}" {% if size == 'gundam' %}selected{% endif %}>{{ size }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <details class="details">
+          <summary>高级参数（对应 cli.py）</summary>
+          <div class="grid">
+            <label class="check">
+              <input type="checkbox" name="includes_footnotes">
+              <span>includes_footnotes</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="ignore_pdf_errors">
+              <span>ignore_pdf_errors</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="generate_plot">
+              <span>generate_plot</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="toc_assumed">
+              <span>toc_assumed</span>
+            </label>
+          </div>
+          <div class="field-group">
+            <div class="field">
+              <label for="device_ids">device_ids</label>
+              <input id="device_ids" name="device_ids" type="text" placeholder="例如 0,1">
+            </div>
+          </div>
+          <p class="note">部分参数仅用于对齐 cli.py。</p>
+        </details>
+
+        <button class="primary" type="submit">加入队列</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>任务队列</h2>
+        <button class="ghost" type="button" id="refresh">刷新</button>
+      </div>
+      <div class="tasks" id="tasks">
+        <div class="tasks-empty">暂无任务</div>
+      </div>
+    </section>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
